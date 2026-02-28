@@ -1,0 +1,24 @@
+# Python
+.venv/
+**/__pycache__/
+*.pyc
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# OS / Editor
+.DS_Store
+.cursor/
+
+# Local artifacts
+terminals/
+agent-transcripts/
+assets/
+
+# Private/internal docs (not for initial public release)
+Rootscope architecture.md
+rootscope.html
+COMMUNITY_TESTING.md
+RELEASE_ANNOUNCEMENT_TEMPLATE.md
+PINNED_TESTING_ISSUE_TEMPLATE.md

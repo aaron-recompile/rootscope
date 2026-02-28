@@ -4,7 +4,9 @@ A clean Taproot script-path analyzer with:
 - Python backend for deterministic cryptographic analysis
 - React frontend for interactive visualization
 
-RootScope is part of the same open Bitcoin education/tooling ecosystem as `mastering-taproot` and `btcaaron`.
+RootScope is part of the same open Bitcoin education/tooling ecosystem as
+[`mastering-taproot`](https://github.com/aaron-recompile/mastering-taproot)
+and [`btcaaron`](https://github.com/aaron-recompile/btcaaron).
 
 ## Product Preview
 

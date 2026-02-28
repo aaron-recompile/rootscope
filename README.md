@@ -4,6 +4,22 @@ A clean Taproot script-path analyzer with:
 - Python backend for deterministic cryptographic analysis
 - React frontend for interactive visualization
 
+RootScope is part of the same open Bitcoin education/tooling ecosystem as `mastering-taproot` and `btcaaron`.
+
+## Product Preview
+
+RootScope UI screenshots:
+
+![RootScope - Merkle Tree](docs/images/rootscope-merkle-tree.png)
+![RootScope - Hash Steps](docs/images/rootscope-hash-steps.png)
+![RootScope - Key Derivation](docs/images/rootscope-key-derivation.png)
+
+Optional demo GIF:
+
+```md
+![RootScope Demo](docs/images/rootscope-demo.gif)
+```
+
 ## Public Repository Structure
 
 - `RootScope.jsx` — React UI (input, tabs, rendering)
@@ -107,3 +123,12 @@ Tests include vectors based on `mastering-taproot`:
 - Chapter 06: single-leaf control block verification
 - Chapter 07: dual-leaf control block verification
 - Chapter 08: four-leaf control block verification
+
+## Acknowledgements
+
+This project is supported by [OpenSats](https://opensats.org/).
+
+## License
+
+- Code: **MIT** (see `LICENSE.md`)
+- Documentation/content: **CC-BY-SA 4.0** (see `LICENSE.md`)

@@ -15,6 +15,13 @@ frontend/dist/
 terminals/
 agent-transcripts/
 assets/
+outputs/
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/*.sqlite
+data/*.sqlite3
+scripts/reproduce_research_sample.sh
 
 # Private/internal docs (not for initial public release)
 Rootscope architecture.md
@@ -22,3 +29,6 @@ rootscope.html
 COMMUNITY_TESTING.md
 RELEASE_ANNOUNCEMENT_TEMPLATE.md
 PINNED_TESTING_ISSUE_TEMPLATE.md
+PRIVATE_WORKLOG_*.md
+PRIVATE_MAILINGLIST_PLAN_*.md
+PRIVATE_BITCOINDEV_PLAN_*.md

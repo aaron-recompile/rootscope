@@ -1,7 +1,7 @@
 import unittest
 
 from backend.analyzer import AnalysisError, analyze_taproot, parse_control_block
-from backend.crypto import tap_branch_hash
+from backend.crypto import N, bech32m_encode, lift_x, point_add, point_mul, tap_branch_hash, tap_leaf_hash, tap_tweak_hash
 
 
 class TestAnalyzer(unittest.TestCase):
@@ -65,6 +65,59 @@ class TestAnalyzer(unittest.TestCase):
         )
         self.assertEqual(result.address, "tb1pjfdm902y2adr08qnn4tahxjvp6x5selgmvzx63yfqk2hdey02yvqjcr29q")
         self.assertTrue(result.checks.expectedAddressMatch)
+
+    def test_unbalanced_three_leaf_tree_consistent_output_key(self) -> None:
+        # Unbalanced tree shape: root = TapBranch(TapBranch(A, B), C)
+        leaf_version = 0xC0
+        script_a = bytes.fromhex("51")  # OP_1
+        script_b = bytes.fromhex("52")  # OP_2
+        script_c = bytes.fromhex("53")  # OP_3
+
+        leaf_a = tap_leaf_hash(leaf_version, script_a)
+        leaf_b = tap_leaf_hash(leaf_version, script_b)
+        leaf_c = tap_leaf_hash(leaf_version, script_c)
+        branch_ab = tap_branch_hash(leaf_a, leaf_b)
+        merkle_root = tap_branch_hash(branch_ab, leaf_c)
+
+        internal_key = bytes.fromhex("50be5fc44ec580c387bf45df275aaa8b27e2d7716af31f10eeed357d126bb4d3")
+        tweak = tap_tweak_hash(internal_key, merkle_root)
+        tweak_int = int.from_bytes(tweak, "big")
+        self.assertLess(tweak_int, N)
+
+        p = lift_x(int.from_bytes(internal_key, "big"))
+        self.assertIsNotNone(p)
+        q = point_add(p, point_mul(tweak_int))
+        self.assertIsNotNone(q)
+        out_x, out_y = q  # type: ignore[misc]
+        parity = out_y & 1
+        expected_address = bech32m_encode("tb", 1, out_x.to_bytes(32, "big"))
+
+        # Control block for revealing leaf A: path [leaf_b, leaf_c], depth=2.
+        control_block_a = (bytes([leaf_version | parity]) + internal_key + leaf_b + leaf_c).hex()
+        # Control block for revealing leaf C: path [branch_ab], depth=1.
+        control_block_c = (bytes([leaf_version | parity]) + internal_key + branch_ab).hex()
+
+        result_a = analyze_taproot(
+            control_block=control_block_a,
+            script=script_a.hex(),
+            network="testnet",
+            expected_address=expected_address,
+        )
+        result_c = analyze_taproot(
+            control_block=control_block_c,
+            script=script_c.hex(),
+            network="testnet",
+            expected_address=expected_address,
+        )
+
+        self.assertEqual(result_a.cb.depth, 2)
+        self.assertEqual(result_c.cb.depth, 1)
+        self.assertEqual(result_a.merkleRootHex, merkle_root.hex())
+        self.assertEqual(result_c.merkleRootHex, merkle_root.hex())
+        self.assertEqual(result_a.outputKey, result_c.outputKey)
+        self.assertEqual(result_a.address, result_c.address)
+        self.assertTrue(result_a.checks.expectedAddressMatch)
+        self.assertTrue(result_c.checks.expectedAddressMatch)
 
 
 if __name__ == "__main__":

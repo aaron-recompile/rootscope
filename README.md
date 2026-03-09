@@ -1,130 +1,131 @@
 # RootScope
 
-A clean Taproot script-path analyzer with:
-- Python backend for deterministic cryptographic analysis
-- React frontend for interactive visualization
+RootScope is a Taproot script-path analyzer focused on reproducibility.
+
+- Python backend for deterministic BIP341 reconstruction
+- React frontend for step-by-step visualization
+- CLI for single-transaction checks and batch research runs
 
 RootScope is part of the same open Bitcoin education/tooling ecosystem as
 [`mastering-taproot`](https://github.com/aaron-recompile/mastering-taproot)
 and [`btcaaron`](https://github.com/aaron-recompile/btcaaron).
 
-## Product Preview
+## Research Motivation
 
-RootScope UI screenshots:
+Taproot enables complex spending conditions while keeping output structure uniform.
+In practice, script-path spends are still hard to inspect because reconstructing
+TapLeaf hashes, Merkle paths, tweaks, and output addresses from witness data is
+error-prone when done manually.
 
-![RootScope - Merkle Tree](docs/images/rootscope-merkle-tree.png)
-![RootScope - Hash Steps](docs/images/rootscope-hash-steps.png)
-![RootScope - Key Derivation](docs/images/rootscope-key-derivation.png)
+RootScope focuses on deterministic reconstruction and reproducible verification for
+script-path cases. It is intended as supporting infrastructure for technical review,
+education, and preliminary empirical analysis.
 
-Optional demo GIF:
+Potential research questions include:
 
-```md
-![RootScope Demo](docs/images/rootscope-demo.gif)
-```
+- how often script-path spending appears in observed samples
+- what script templates appear in those samples
+- how deep real script trees tend to be
+- which implementation patterns are visible across spending scripts
 
-## Public Repository Structure
+## Why RootScope
 
-- `RootScope.jsx` — React UI (input, tabs, rendering)
-- `backend/app.py` — FastAPI server (`/health`, `/analyze`)
-- `backend/fetch_witness.py` — `txid + vin` witness resolver (`/fetch-witness`)
-- `backend/analyzer.py` — Control block parsing + Taproot analysis pipeline
-- `backend/crypto.py` — TaggedHash, Merkle, secp256k1 arithmetic, bech32m
-- `backend/models.py` — API contract models
-- `backend/tests/` — backend tests
-- `frontend/` — Vite React app shell for local preview
-- `Makefile` / `scripts/test_all.sh` — one-command regression helpers
+Given `script + control block`, RootScope reconstructs:
 
-## API Contract
+- TapLeaf hash
+- Merkle path/root
+- TapTweak
+- output key + bech32m address
+- optional expected-address match result
 
-`POST /analyze`
+This makes it useful for education, debugging, and preliminary empirical studies.
 
-Request:
+## Architecture
 
-```json
-{
-  "controlBlock": "hex",
-  "script": "hex",
-  "network": "testnet",
-  "expectedAddress": "tb1p... (optional)"
-}
-```
+RootScope has three components:
 
-Response fields (stable contract):
+- **Python backend**
+  - TapLeaf hashing, Merkle path/root reconstruction, TapTweak derivation
+  - deterministic address reconstruction and validation checks
+- **CLI interface**
+  - single transaction verification
+  - batch processing with structured output
+- **React visualization**
+  - step-by-step hash and key-derivation walkthrough
+  - human-readable explanation of control-block parsing and parity checks
 
-- `cb` (parsed control block)
-- `steps` (TapLeaf + TapBranch walkthrough)
-- `leafHex`, `merkleRootHex`, `tweakHex`
-- `outputKey`, `computedParity`, `parityMatch`
-- `address`
-- `checks.expectedAddressMatch` and reason
+## Quick Start
 
-`GET /fetch-witness?txid=<txid>&vin=<index>&network=auto|testnet|mainnet`
-
-- Auto-resolves witness input into `scriptHex` + `controlBlockHex`
-- Returns `witnessStack` and detected `network/source`
-- Intended to prefill UI before calling `/analyze`
-
-## Local Run
-
-### 1) Create virtual environment and install dependencies
+### 1) Setup
 
 ```bash
 python3 -m venv .venv
 ./.venv/bin/python -m pip install -r backend/requirements.txt
 ```
 
-### 2) Run tests
-
-```bash
-./.venv/bin/python -m unittest discover -s backend/tests -p "test_*.py"
-```
-
-### 2.1) Run chapter06/07/08 regression in one command
-
-```bash
-./.venv/bin/python backend/scripts/run_regression.py
-```
-
-Expected output ends with:
-
-```text
-SUMMARY: 3/3 PASS
-```
-
-### 2.2) Shortcut commands
-
-From project root:
+### 2) Validate core logic
 
 ```bash
 make regression
+make bip341-vectors
 ```
 
-Run all backend checks (unit tests + chapter06/07/08 regression):
+### 3) Run a quick batch sample
 
 ```bash
-./scripts/test_all.sh
+./.venv/bin/python -m backend.cli batch \
+  --input-csv data/sample_batch.csv \
+  --out outputs/sample_batch.jsonl \
+  --summary outputs/sample_batch_summary.csv
 ```
 
-### 3) Start backend
+## Example Output
+
+Command:
 
 ```bash
-./.venv/bin/python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000 --reload
+./.venv/bin/python -m backend.cli tx b61857a05852482c9d5ffbb8159fc2ba1efa3dd16fe4595f121fc35878a2e430 --vin 0 --network testnet
 ```
 
-### 4) Frontend integration
+Output excerpt:
 
-`RootScope.jsx` sends analysis requests to:
+```text
+Taproot Reconstruction
+- merkle root:   868ba8150cd670ce73709de6d9056427e2974c4214a729c6b690647947441219
+- tweak:         630a17e3217a2b5b5120b500ae3b160f1b7d78e9aed8116b6c6c96ea524a35af
+- address:       tb1p93c4wxsr87p88jau7vru83zpk6xl0shf5ynmutd9x0gxwau3tngq9a4w3z
+- parity match:  True
+```
 
-- default: `http://127.0.0.1:8000`
-- override: set `window.__ROOTSCOPE_API_BASE__ = "http://your-host:port"` before mounting the component
+## Validation Snapshot
 
-## Verified Vectors
+Current coverage includes:
 
-Tests include vectors based on `mastering-taproot`:
+- chapter06/07/08 vectors (from [`mastering-taproot`](https://github.com/aaron-recompile/mastering-taproot), book: [Leanpub](https://leanpub.com/mastering-taproot))
+- official BIP341 script-path vectors (`wallet-test-vectors.json`, 12/12 paths)
+- unbalanced tree case (`TapBranch(TapBranch(A,B),C)`)
+- control block length/depth guards and parity checks
 
-- Chapter 06: single-leaf control block verification
-- Chapter 07: dual-leaf control block verification
-- Chapter 08: four-leaf control block verification
+## Future Work
+
+Planned extensions (research-oriented, not yet complete):
+
+- larger public reproducibility bundles built from openly shareable inputs
+- richer script-template labeling and conservative classification notes
+- broader depth/distribution reporting across more sample windows
+- additional cross-check workflows with external script-analysis tooling
+
+## Docs
+
+- Detailed command reference and reproducible workflows: `docs/REPRODUCE.md`
+- btcdeb side-by-side check: `docs/BTCDEB_COMPARISON.md`
+- sample data notes: `data/README.md`
+
+## Product Preview
+
+![RootScope - Merkle Tree](docs/images/rootscope-merkle-tree.png)
+![RootScope - Hash Steps](docs/images/rootscope-hash-steps.png)
+![RootScope - Key Derivation](docs/images/rootscope-key-derivation.png)
 
 ## Acknowledgements
 

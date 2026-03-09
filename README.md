@@ -21,12 +21,16 @@ RootScope focuses on deterministic reconstruction and reproducible verification 
 script-path cases. It is intended as supporting infrastructure for technical review,
 education, and preliminary empirical analysis.
 
-Potential research questions include:
+Observed in current public sample window:
 
-- how often script-path spending appears in observed samples
-- what script templates appear in those samples
-- how deep real script trees tend to be
-- which implementation patterns are visible across spending scripts
+- script-path spending appears template-concentrated in the analyzed sample
+- control-block depth is mostly shallow (single-leaf)
+
+Open questions for further study:
+
+- broader template distribution across longer time ranges
+- depth distribution at larger scale
+- implementation-pattern diversity across independent sample windows
 
 ## Why RootScope
 

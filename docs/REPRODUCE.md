@@ -53,14 +53,31 @@ From repo sample CSV:
   --summary outputs/sample_batch_summary.csv
 ```
 
+From empirical sample CSV:
+
+```bash
+./.venv/bin/python -m backend.cli batch \
+  --input-csv data/empirical_sample_v0_1_0.csv \
+  --out outputs/empirical_sample_v0_1_0.jsonl \
+  --summary outputs/empirical_sample_v0_1_0_summary.csv
+```
+
+Expected summary for `empirical_sample_v0_1_0`:
+
+- total: `300`
+- success: `300`
+- failed: `0`
+- expected_address_match.true: `300`
+- caveat: sample appears template-concentrated and shallow-depth in this window
+
 ## Batch Report Rendering
 
 ```bash
 ./.venv/bin/python backend/scripts/render_batch_report.py \
-  --summary outputs/sample_batch_summary.csv \
-  --jsonl outputs/sample_batch.jsonl \
-  --out outputs/sample_batch_report.md \
-  --name sample-batch
+  --summary outputs/empirical_sample_v0_1_0_summary.csv \
+  --jsonl outputs/empirical_sample_v0_1_0.jsonl \
+  --out outputs/empirical_sample_v0_1_0_report.md \
+  --name empirical-sample-v0.1.0
 ```
 
 Shortcut:

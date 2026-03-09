@@ -102,9 +102,16 @@ Taproot Reconstruction
 Current coverage includes:
 
 - chapter06/07/08 vectors (from [`mastering-taproot`](https://github.com/aaron-recompile/mastering-taproot), book: [Leanpub](https://leanpub.com/mastering-taproot))
-- official BIP341 script-path vectors (`wallet-test-vectors.json`, 12/12 paths)
+- official [BIP-0341](https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki) script-path vectors ([`wallet-test-vectors.json`](https://github.com/bitcoin/bips/blob/master/bip-0341/wallet-test-vectors.json), 12/12 paths)
 - unbalanced tree case (`TapBranch(TapBranch(A,B),C)`)
 - control block length/depth guards and parity checks
+
+Empirical note (public sample):
+
+- `data/empirical_sample_v0_1_0.csv` contains a small reproducible mainnet sample (300 rows)
+- in this sample window, script-path structure is template-concentrated and depth is mostly shallow
+- this is a preliminary sample for reproducibility, not a broad network-level claim
+- complex/deeper behavior is validated separately through BIP341 + chapter06/07/08 vectors
 
 ## Future Work
 

@@ -1,0 +1,5 @@
+# RootScope x402 API 部署依赖(Render 用这个)
+fastapi
+uvicorn
+x402[fastapi,evm]
+cdp-sdk
